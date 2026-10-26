@@ -91,10 +91,74 @@ En Windows se usa el mismo comando después de activar el entorno. Se abrirá la
 
 El sistema requiere al menos 120 días históricos para procesar una serie. Como utiliza los últimos 90 días para evaluar el modelo, conviene proporcionar un historial considerablemente más largo para que el entrenamiento tenga suficientes datos.
 
+## Descargar e integrar el dataset
+
+El programa es compatible con el archivo `train.csv` del reto **Store Item Demand Forecasting Challenge** de Kaggle. Se puede descargar desde la [página oficial de datos del reto](https://www.kaggle.com/competitions/demand-forecasting-kernels-only/data). Kaggle puede solicitar iniciar sesión y aceptar las reglas de la competencia antes de habilitar la descarga.
+
+1. Abre el enlace anterior y descarga `train.csv` (o usa **Download All** y extrae el archivo ZIP).
+2. Ejecuta `sistema_forecasting.py`.
+3. Pulsa **Cargar train.csv (Kaggle)** y selecciona el archivo descargado.
+4. El programa valida y normaliza los encabezados, carga las ventas y ejecuta el pronóstico. Después puedes cambiar tienda, artículo y parámetros desde la interfaz.
+
+El CSV debe incluir estas columnas:
+
+| Columna | Contenido esperado |
+| --- | --- |
+| `date` | Fecha de las ventas, interpretable como fecha |
+| `store` | Identificador de la tienda |
+| `item` | Identificador del artículo |
+| `sales` | Unidades vendidas ese día |
+
+Se necesita un mínimo de 120 registros para la tienda y artículo seleccionados. El modelo reserva los últimos 90 días para evaluación, así que un historial más largo permite entrenarlo con más datos. El archivo de Kaggle contiene el historial agregado por fecha, tienda y artículo; el sistema carga el CSV completo y permite filtrar una combinación en la aplicación.
+
+## Guía de la interfaz
+
+### Controles laterales
+
+- **Origen del dataset:** carga el archivo CSV de Kaggle o reemplaza los datos actuales con datos sintéticos de demostración.
+- **Tienda y artículo:** limitan el análisis a una serie de ventas concreta.
+- **Algoritmo y horizonte:** seleccionan el modelo de regresión y cuántos días futuros se calcularán (de 7 a 120).
+- **Inventario físico y nivel de servicio:** indican las unidades disponibles y el nivel de confianza usado para estimar el stock de seguridad.
+- **Ejecutar Forecasting:** vuelve a entrenar y actualiza las métricas, gráficas y tabla con los parámetros seleccionados.
+
+### Indicadores superiores
+
+- **Error MAE:** error absoluto promedio del modelo en los días de prueba; se expresa en unidades. El porcentaje secundario muestra el MAPE.
+- **Error RMSE / R²:** RMSE resume el error y penaliza más las desviaciones grandes; R² indica cuánto se ajusta el modelo a los datos de prueba.
+- **Demanda pronosticada:** suma de las ventas estimadas para todo el horizonte elegido.
+- **Stock de seguridad:** inventario adicional calculado a partir del RMSE, el horizonte y el nivel de servicio.
+- **Pedido sugerido:** compara la demanda pronosticada más el stock de seguridad con el inventario físico. Si el inventario alcanza, muestra el superávit en lugar de un pedido.
+
+### Pestañas de resultados
+
+- **Gráfica de Pronóstico:** compara las ventas reales de prueba con el ajuste del modelo y muestra la proyección futura. La franja sombreada representa el intervalo estimado alrededor del pronóstico.
+- **Pesos de Variables:** ayuda a interpretar qué variables influyen en el modelo. En regresiones muestra coeficientes positivos o negativos; en Random Forest muestra importancia relativa.
+- **Tabla de Pronóstico Diario y Exportación:** presenta la fecha, el día, la venta estimada, los límites inferior y superior y la demanda acumulada. El botón **Exportar Pronóstico a CSV** guarda estas columnas en un archivo.
+
+## Capturas del sistema
+
+### Pronóstico de demanda
+
+![Captura de la gráfica de pronóstico](<assets/Captura desde 2026-10-25 21-28-48.png>)
+
+La gráfica compara las ventas reales de los últimos 90 días con el ajuste del modelo y proyecta las ventas futuras para la tienda y el artículo seleccionados. La banda naranja representa el intervalo estimado; en la parte superior se resumen los errores, la demanda total, el stock de seguridad y el pedido sugerido.
+
+### Pesos de variables
+
+![Captura de los coeficientes del modelo](<assets/Captura desde 2026-10-25 21-29-06.png>)
+
+Esta vista muestra los coeficientes de la regresión lineal para las variables usadas por el modelo. Las barras azules representan una relación positiva y las rojas una relación negativa; las variables con barras de mayor magnitud tienen mayor influencia en esta regresión.
+
+### Tabla de pronóstico diario
+
+![Captura de la tabla de pronóstico y exportación](<assets/Captura desde 2026-10-25 21-29-12.png>)
+
+La tabla detalla, día por día, las unidades pronosticadas, los límites mínimo y máximo y la demanda acumulada durante el horizonte seleccionado. El botón **Exportar Pronóstico a CSV** permite guardar estos resultados.
+
 ## Archivos de salida
 
 El pronóstico se exporta como un archivo CSV elegido por el usuario. Incluye fecha, día de la semana, venta pronosticada, límites inferior y superior, y demanda acumulada. El archivo no incluye las métricas ni la recomendación de inventario; estas se muestran en la interfaz.
 
 ## Conclusión
 
-El programa ofrece una forma práctica de explorar la demanda y apoyar decisiones de inventario mediante pronósticos y métricas visibles. Sus resultados son estimaciones basadas en el historial disponible, por lo que deben revisarse junto con el contexto operativo antes de realizar pedidos reales.
+El sistema facilita la consulta de pronósticos y necesidades de inventario a partir de ventas históricas. Sus resultados son estimaciones y conviene contrastarlos con el contexto operativo antes de realizar pedidos reales.
